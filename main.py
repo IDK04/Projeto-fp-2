@@ -65,7 +65,7 @@ def gera_carater_aleatorio(gerador, caracter):
 # -Construtores
 def cria_coordenada(coluna, linha):
     if type(coluna) != str or type(linha) != int or len(coluna)!=1 or not(1<=linha<=99) or \
-        not(ord('A') <= ord(coluna) <= ord('Z')):
+        not('A' <= coluna <= 'Z'):
         raise ValueError('cria_coordenada: argumentos invalidos')
 
     return (coluna, linha)
@@ -83,7 +83,7 @@ def obtem_linha(coordenada):
 def eh_coordenada(arg):
     return type(arg) == tuple and len(arg) == 2 and type(arg[0]) == str and \
         type(arg[1]) == int and len(arg[0])== 1 and (1<=arg[1]<=99) and \
-        (ord('A') <= ord(arg[0]) <= ord('Z'))
+        ('A' <= arg[0] <= 'Z')
 
 # Teste
 def coordenadas_iguais(coord1, coord2):
@@ -99,7 +99,7 @@ def obtem_coordenadas_vizinhas(coordenada):
     def pode_ser_coordenada(col, lin):
         return type(col) == str and \
             type(lin) == int and len(col)== 1 and (1<=lin<=99) and \
-                (ord('A') <= ord(col) <= ord('Z'))
+                ('A' <= col <= 'Z')
     coordenadas_vizinhas = []
     # Coordenadas em cima
     for coluna_offset in range(-1, 2):
@@ -323,15 +323,17 @@ def jogo_ganho(campo):
     coordenadas_marcadas_ou_tapadas = obtem_coordenadas(campo, 'tapadas') + obtem_coordenadas(campo, 'marcadas')
     coordenadas_marcadas_ou_tapadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
     coordenadas_minadas = obtem_coordenadas(campo, 'minadas')
+    coordenadas_minadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
     return len(coordenadas_marcadas_ou_tapadas) != 0\
         and len(coordenadas_minadas) != 0\
         and coordenadas_marcadas_ou_tapadas == coordenadas_minadas
 
-def turno_jogador(campo):
-    while True:
-        acao = input('Escolha uma ação, [L]impar ou [M]arcar:')
-        if type(acao)==str and len(acao)==1 and (acao == 'M' or acao == 'L'):
-            break
+def turno_jogador(campo, primeiro_turno=False):
+    if not primeiro_turno:
+        while True:
+            acao = input('Escolha uma ação, [L]impar ou [M]arcar:')
+            if type(acao)==str and len(acao)==1 and (acao == 'M' or acao == 'L'):
+                break
     while True:
         coordenada = input('Escolha uma coordenada:')
         try:
@@ -343,12 +345,50 @@ def turno_jogador(campo):
         except:
             pass
     
-    if acao == 'M':
-        marca_parcela(obtem_parcela(campo, coordenada))
+    if not primeiro_turno:
+        if acao == 'M':
+            marca_parcela(obtem_parcela(campo, coordenada))
+            return True
+        else:
+            limpa_campo(campo, coordenada)
+            return not eh_parcela_minada(obtem_parcela(campo, coordenada))
     else:
-        limpa_campo(campo, coordenada)
-
-    return not eh_parcela_minada(obtem_parcela(campo, coordenada))
+        return coordenada
 
 
-# Ultima funcao - ver se dá para por as minas sem as 9 coordenadas que nao pode
+def minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial):
+    if type(ultima_coluna) != str or type(ultima_linha) != int\
+    or type(num_minas)!=int or type(dimensao_gerador) != int or type(seed_inicial)!=int\
+    or len(ultima_coluna)!=1 or not(1<=ultima_linha<=99)\
+    or not ('A' <= ultima_coluna <= 'Z')\
+    or num_minas <= 0 or (dimensao_gerador != 32 and dimensao_gerador != 64)\
+    or seed_inicial <= 0 or (dimensao_gerador==32 and seed_inicial > 0xFFFFFFFF)\
+    or (dimensao_gerador==64 and seed_inicial > 0xFFFFFFFFFFFFFFFF):
+        raise ValueError('minas: argumentos invalidos')
+    
+    dimensao_campo = (ultima_linha-1)*(ord(ultima_coluna)-ord('A')+1)
+    if dimensao_campo < (9 + num_minas):
+        raise ValueError('minas: argumentos invalidos')
+    
+    def mostra_campo():
+        print(f'   [Bandeiras {len(obtem_coordenadas(campo, "marcadas"))}/{num_minas}]')
+        print(campo_para_str(campo))
+
+    campo = cria_campo(ultima_coluna, ultima_linha)
+    mostra_campo()
+    gerador = cria_gerador(dimensao_gerador, seed_inicial)
+    coordenada_inicial = turno_jogador(campo, primeiro_turno=True)
+    campo = coloca_minas(campo, coordenada_inicial, gerador, num_minas)
+    limpa_campo(campo, coordenada_inicial)
+
+    while True:
+        mostra_campo()
+        turno = turno_jogador(campo)
+        if not turno:
+            mostra_campo()
+            print('BOOOOOOOM!!!')
+            return False
+        if jogo_ganho(campo):
+            mostra_campo()
+            print('VITORIA!!!')
+            return True
