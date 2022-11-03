@@ -4,7 +4,8 @@
 # -Construtores
 def cria_gerador(bits, seed):
     if type(bits) != int or type(seed) != int or (bits != 32 and bits != 64)\
-        or seed <= 0:
+        or seed <= 0 or (bits==32 and seed > 0xFFFFFFFF)\
+        or (bits==64 and seed > 0xFFFFFFFFFFFFFFFF):
         raise ValueError('cria_gerador: argumentos invalidos')
     return [bits,seed]
 
@@ -325,3 +326,29 @@ def jogo_ganho(campo):
     return len(coordenadas_marcadas_ou_tapadas) != 0\
         and len(coordenadas_minadas) != 0\
         and coordenadas_marcadas_ou_tapadas == coordenadas_minadas
+
+def turno_jogador(campo):
+    while True:
+        acao = input('Escolha uma ação, [L]impar ou [M]arcar:')
+        if type(acao)==str and len(acao)==1 and (acao == 'M' or acao == 'L'):
+            break
+    while True:
+        coordenada = input('Escolha uma coordenada:')
+        try:
+            if type(coordenada) == str and len(coordenada) == 3\
+            and 1 <= int(coordenada[1:3]) <= obtem_ultima_linha(campo)\
+            and 'A' <= str(coordenada[0]) <= obtem_ultima_coluna(campo):
+                coordenada = cria_coordenada(str(coordenada[0]), int(coordenada[1:3]))
+                break
+        except:
+            pass
+    
+    if acao == 'M':
+        marca_parcela(obtem_parcela(campo, coordenada))
+    else:
+        limpa_campo(campo, coordenada)
+
+    return not eh_parcela_minada(obtem_parcela(campo, coordenada))
+
+
+# Ultima funcao - ver se dá para por as minas sem as 9 coordenadas que nao pode
