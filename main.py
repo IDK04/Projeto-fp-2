@@ -337,17 +337,17 @@ def turno_jogador(campo, primeiro_turno=False):
     while True:
         coordenada = input('Escolha uma coordenada:')
         try:
-            if type(coordenada) == str and len(coordenada) == 3\
+            if type(coordenada) == str and len(coordenada.strip()) == 3\
             and 1 <= int(coordenada[1:3]) <= obtem_ultima_linha(campo)\
             and 'A' <= str(coordenada[0]) <= obtem_ultima_coluna(campo):
                 coordenada = cria_coordenada(str(coordenada[0]), int(coordenada[1:3]))
                 break
         except:
             pass
-    
+
     if not primeiro_turno:
         if acao == 'M':
-            marca_parcela(obtem_parcela(campo, coordenada))
+            alterna_bandeira(obtem_parcela(campo, coordenada))
             return True
         else:
             limpa_campo(campo, coordenada)
