@@ -1,0 +1,41 @@
+gera_numero_aleatorio;Gera um número aleatório recorrendo ao gerador;gerador,int;int
+gera_carater_aleatorio;Gera um caracter aleatório recorrendo ao gerador;gerador,str;str
+cria_coordenada;Cria uma nova instância de uma coordenada;str,int;coordenada
+obtem_coluna;Devolve a coluna de uma coordenada;coordenada;str
+obtem_linha;Devolve a linha de uma coordenada;coordenada;int
+eh_coordenada;Verifica se o argumento é uma coordenada;universal;bool
+coordenadas_iguais;Verifica se duas coordenadas são iguais;coordenada,coordenada;bool
+coordenada_para_str;Devolve a representação externa da coordenada;coordenada;str
+str_para_coordenada;Devolve a representação interna da coordenada;str;coordenada
+obtem_coordenadas_vizinhas;Devolve todas as coordenadas vizinhas, segundo a regra descrita;coordenada;tuplo
+obtem_coordenada_aleatoria;Devolve uma coordenada aleatória cuja coluna e linha máxima são definidas pelo parâmetro coordenada;coordenada,gerador;coordenada
+cria_parcela;Cria uma nova instância de uma parcela;s/argumentos;parcela
+cria_copia_parcela;Cria uma nova instância de uma parcela a partir de outra;parcela;parcela
+limpa_parcela;Altera destrutivamente o estado da parcela para limpa;parcela;parcela
+marca_parcela;Altera destrutivamente o estado da parcela para marcada;parcela;parcela
+desmarca_parcela;Altera destrutivamente o estado da parcela para tapada;parcela;parcela
+esconde_mina;Altera destrutivamente a parcela, passando a estar minada;parcela;parcela
+eh_parcela;Verifica se o argumento é uma parcela;universal;bool
+eh_parcela_tapada;Verifica se a parcela está tapada;parcela;bool
+eh_parcela_marcada;Verifica se a parcela está marcada;parcela;bool
+eh_parcela_limpa;Verifica se a parcela está limpa;parcela;bool
+eh_parcela_minada;Verifica se a parcela está minada;parcela;bool
+parcelas_iguais;Verifica se duas parcelas são iguais;parcela,parcela;bool
+parcela_para_str;Devolve a representação externa de uma parcela;parcela;str
+alterna_bandeira;Adiciona ou remove a bandeira de uma parcela;parcela;bool
+cria_campo;Cria uma nova instância de um campo;str,int;campo
+cria_copia_campo;Cria uma nova instância de um campo a partir de outro campo;campo;campo
+obtem_ultima_coluna;Devolve a última coluna de um campo;campo;str
+obtem_ultima_linha;Devolve a última linha de um campo;campo;int
+obtem_parcela;Devolve a parcela do campo que se encontra numa deternimada coordenada;campo,coordenada;parcela
+obtem_coordenadas;Devolve o conjunto de coordenadas filtradas pelo seu estado;campo,str;tuplo
+obtem_numero_minas_vizinhas;Desolve o número de minas em coordenadas vizinhas à fornecida;campo,coordenada;int
+eh_campo;Verifica se o argumento é um campo;universal;bool
+eh_coordenada_do_campo;Verifica se o a coordenada pertence ao campo;campo,coordenada;bool
+campos_iguais;Verifica se dois campos são iguais;campo,campo;bool
+campo_para_str;Devolve a representação externa de um campo;campo;str
+coloca_minas;Esconde minas dentro do campo;campo,coordenada,gerador,int;campo
+limpa_campo;Limpa a coordenada fornecida até encontrar minas vizinhas;campo,coordenada;campo
+jogo_ganho;Recebe um campo e verifica se o jogo está ganho;campo;bool
+turno_jogador;Dá a opção ao jogador de escolher a ação que quer realizar;campo;bool
+minas;Permite ao jogador jogar o jogo das minas;str,int,int,int,int;bool

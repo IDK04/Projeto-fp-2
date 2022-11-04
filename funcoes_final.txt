@@ -1,0 +1,164 @@
+'''Gera um número aleatório recorrendo ao gerador
+	gera_numero_aleatorio : gerador x int -> int
+	'''
+
+'''Gera um caracter aleatório recorrendo ao gerador
+	gera_carater_aleatorio : gerador x str -> str
+	'''
+
+'''Cria uma nova instância de uma coordenada
+	cria_coordenada : str x int -> coordenada
+	'''
+
+'''Devolve a coluna de uma coordenada
+	obtem_coluna : coordenada -> str
+	'''
+
+'''Devolve a linha de uma coordenada
+	obtem_linha : coordenada -> int
+	'''
+
+'''Verifica se o argumento é uma coordenada
+	eh_coordenada : universal -> bool
+	'''
+
+'''Verifica se duas coordenadas são iguais
+	coordenadas_iguais : coordenada x coordenada -> bool
+	'''
+
+'''Devolve a representação externa da coordenada
+	coordenada_para_str : coordenada -> str
+	'''
+
+'''Devolve a representação interna da coordenada
+	str_para_coordenada : str -> coordenada
+	'''
+
+'''Devolve todas as coordenadas vizinhas, segundo a regra descrita
+	obtem_coordenadas_vizinhas : coordenada -> tuplo
+	'''
+
+'''Devolve uma coordenada aleatória cuja coluna e linha máxima são definidas pelo parâmetro coordenada
+	obtem_coordenada_aleatoria : coordenada x gerador -> coordenada
+	'''
+
+'''Cria uma nova instância de uma parcela
+	cria_parcela : s/argumentos -> parcela
+	'''
+
+'''Cria uma nova instância de uma parcela a partir de outra
+	cria_copia_parcela : parcela -> parcela
+	'''
+
+'''Altera destrutivamente o estado da parcela para limpa
+	limpa_parcela : parcela -> parcela
+	'''
+
+'''Altera destrutivamente o estado da parcela para marcada
+	marca_parcela : parcela -> parcela
+	'''
+
+'''Altera destrutivamente o estado da parcela para tapada
+	desmarca_parcela : parcela -> parcela
+	'''
+
+'''Altera destrutivamente a parcela, passando a estar minada
+	esconde_mina : parcela -> parcela
+	'''
+
+'''Verifica se o argumento é uma parcela
+	eh_parcela : universal -> bool
+	'''
+
+'''Verifica se a parcela está tapada
+	eh_parcela_tapada : parcela -> bool
+	'''
+
+'''Verifica se a parcela está marcada
+	eh_parcela_marcada : parcela -> bool
+	'''
+
+'''Verifica se a parcela está limpa
+	eh_parcela_limpa : parcela -> bool
+	'''
+
+'''Verifica se a parcela está minada
+	eh_parcela_minada : parcela -> bool
+	'''
+
+'''Verifica se duas parcelas são iguais
+	parcelas_iguais : parcela x parcela -> bool
+	'''
+
+'''Devolve a representação externa de uma parcela
+	parcela_para_str : parcela -> str
+	'''
+
+'''Adiciona ou remove a bandeira de uma parcela
+	alterna_bandeira : parcela -> bool
+	'''
+
+'''Cria uma nova instância de um campo
+	cria_campo : str x int -> campo
+	'''
+
+'''Cria uma nova instância de um campo a partir de outro campo
+	cria_copia_campo : campo -> campo
+	'''
+
+'''Devolve a última coluna de um campo
+	obtem_ultima_coluna : campo -> str
+	'''
+
+'''Devolve a última linha de um campo
+	obtem_ultima_linha : campo -> int
+	'''
+
+'''Devolve a parcela do campo que se encontra numa deternimada coordenada
+	obtem_parcela : campo x coordenada -> parcela
+	'''
+
+'''Devolve o conjunto de coordenadas filtradas pelo seu estado
+	obtem_coordenadas : campo x str -> tuplo
+	'''
+
+'''Desolve o número de minas em coordenadas vizinhas à fornecida
+	obtem_numero_minas_vizinhas : campo x coordenada -> int
+	'''
+
+'''Verifica se o argumento é um campo
+	eh_campo : universal -> bool
+	'''
+
+'''Verifica se o a coordenada pertence ao campo
+	eh_coordenada_do_campo : campo x coordenada -> bool
+	'''
+
+'''Verifica se dois campos são iguais
+	campos_iguais : campo x campo -> bool
+	'''
+
+'''Devolve a representação externa de um campo
+	campo_para_str : campo -> str
+	'''
+
+'''Esconde minas dentro do campo
+	coloca_minas : campo x coordenada x gerador x int -> campo
+	'''
+
+'''Limpa a coordenada fornecida até encontrar minas vizinhas
+	limpa_campo : campo x coordenada -> campo
+	'''
+
+'''Recebe um campo e verifica se o jogo está ganho
+	jogo_ganho : campo -> bool
+	'''
+
+'''Dá a opção ao jogador de escolher a ação que quer realizar
+	turno_jogador : campo -> bool
+	'''
+
+'''Permite ao jogador jogar o jogo das minas
+	minas : str x int x int x int x int -> bool
+	'''
+
