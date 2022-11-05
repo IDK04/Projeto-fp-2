@@ -54,8 +54,8 @@ def eh_gerador(arg):
     eh_gerador : universal -> bool
     '''
     return type(arg) == list and len(arg) == 2 and type(arg[0]) == int and \
-        type(arg[1]) == int and (arg[0] == 32 or arg[0] == 64) and \
-            arg[1] > 0
+        type(arg[1]) == int and (arg[0] == 32 or arg[0] == 64) and arg[1] > 0 and\
+            ((arg[0]==32 and arg[1] <= 0xFFFFFFFF) or (arg[0]==64 and arg[1] <= 0xFFFFFFFFFFFFFFFF))
 
 # -Teste
 def geradores_iguais(gerador1, gerador2):
@@ -324,7 +324,13 @@ def cria_copia_campo(campo):
     '''Cria uma nova instância de um campo a partir de outro campo
 	cria_copia_campo : campo -> campo
 	'''
-    return list(linha.copy() for linha in campo)
+    novo_campo = list()
+    for linha in campo:
+        nova_linha = list()
+        for parcela in linha:
+            nova_linha.append(parcela.copy())
+        novo_campo.append(nova_linha.copy())
+    return novo_campo
 
 # -Seletores
 def obtem_ultima_coluna(campo):
@@ -368,7 +374,7 @@ def obtem_coordenadas(campo, estado):
                 coluna_letra = chr(ord('A')+coluna)
                 if filtro(obtem_parcela(campo, cria_coordenada(coluna_letra, linha+1))):
                     filtrado.append(cria_coordenada(coluna_letra, linha+1))
-        return filtrado
+        return tuple(filtrado)
 
 def obtem_numero_minas_vizinhas(campo, coord):
     '''Desolve o número de minas em coordenadas vizinhas à fornecida
@@ -444,18 +450,28 @@ def coloca_minas(campo, coordenada, gerador, num_minas):
                 break
     return campo
 
-def limpa_campo(campo, coordenada):
+def limpa_campo(campo, coordenada_inicial):
     '''Limpa a coordenada fornecida até encontrar minas vizinhas
 	limpa_campo : campo x coordenada -> campo
 	'''
-    parcela = obtem_parcela(campo, coordenada)
-    if not eh_parcela_limpa(parcela) and not eh_parcela_marcada(parcela):
-        limpa_parcela(obtem_parcela(campo, coordenada))
-        minas_vizinhas = obtem_numero_minas_vizinhas(campo, coordenada)
-        coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada)
-        if minas_vizinhas == 0:
+    def limpa_campo_aux(campo,coordenada):
+        parcela = obtem_parcela(campo, coordenada)
+        if not eh_parcela_limpa(parcela) and not eh_parcela_marcada(parcela):
+            limpa_parcela(obtem_parcela(campo, coordenada))
+            minas_vizinhas = obtem_numero_minas_vizinhas(campo, coordenada)
+            coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada)
+            if minas_vizinhas == 0 and not eh_parcela_minada(parcela):
+                for coordenada_vizinha in coordenadas_vizinhas:
+                    limpa_campo_aux(campo, coordenada_vizinha)
+
+    parcela = obtem_parcela(campo, coordenada_inicial)
+    if not eh_parcela_limpa(parcela):
+        limpa_parcela(obtem_parcela(campo, coordenada_inicial))
+        minas_vizinhas = obtem_numero_minas_vizinhas(campo, coordenada_inicial)
+        coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada_inicial)
+        if minas_vizinhas == 0 and not eh_parcela_minada(parcela):
             for coordenada_vizinha in coordenadas_vizinhas:
-                limpa_campo(campo, coordenada_vizinha)
+                limpa_campo_aux(campo, coordenada_vizinha)
 
     return campo
 
@@ -464,23 +480,21 @@ def jogo_ganho(campo):
     '''Recebe um campo e verifica se o jogo está ganho
 	jogo_ganho : campo -> bool
 	'''
-    coordenadas_marcadas_ou_tapadas = obtem_coordenadas(campo, 'tapadas') + obtem_coordenadas(campo, 'marcadas')
+    coordenadas_marcadas_sem_mina = list(filter(lambda x: not eh_parcela_minada(x), obtem_coordenadas(campo, 'marcadas')))
+    coordenadas_marcadas_ou_tapadas = list(obtem_coordenadas(campo, 'tapadas')) + coordenadas_marcadas_sem_mina
     coordenadas_marcadas_ou_tapadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
-    coordenadas_minadas = obtem_coordenadas(campo, 'minadas')
+    coordenadas_minadas = list(obtem_coordenadas(campo, 'minadas'))
     coordenadas_minadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
-    return len(coordenadas_marcadas_ou_tapadas) != 0\
-        and len(coordenadas_minadas) != 0\
-        and coordenadas_marcadas_ou_tapadas == coordenadas_minadas
+    return coordenadas_marcadas_ou_tapadas == coordenadas_minadas
 
-def turno_jogador(campo, primeiro_turno=False):
+def turno_jogador(campo):
     '''Dá a opção ao jogador de escolher a ação que quer realizar
 	turno_jogador : campo -> bool
 	'''
-    if not primeiro_turno:
-        while True:
-            acao = input('Escolha uma ação, [L]impar ou [M]arcar:')
-            if type(acao)==str and len(acao)==1 and (acao == 'M' or acao == 'L'):
-                break
+    while True:
+        acao = input('Escolha uma ação, [L]impar ou [M]arcar:')
+        if type(acao)==str and len(acao)==1 and (acao == 'M' or acao == 'L'):
+            break
     while True:
         coordenada = input('Escolha uma coordenada:')
         try:
@@ -492,15 +506,13 @@ def turno_jogador(campo, primeiro_turno=False):
         except:
             pass
 
-    if not primeiro_turno:
-        if acao == 'M':
-            alterna_bandeira(obtem_parcela(campo, coordenada))
-            return True
-        else:
-            limpa_campo(campo, coordenada)
-            return not eh_parcela_minada(obtem_parcela(campo, coordenada))
+    if acao == 'M':
+        alterna_bandeira(obtem_parcela(campo, coordenada))
+        return True
     else:
-        return coordenada
+        limpa_campo(campo, coordenada)
+        return not eh_parcela_minada(obtem_parcela(campo, coordenada))
+
 
 def verificacao_minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial):
     if type(ultima_coluna) != str or type(ultima_linha) != int\
@@ -512,7 +524,7 @@ def verificacao_minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, 
     or (dimensao_gerador==64 and seed_inicial > 0xFFFFFFFFFFFFFFFF):
         raise ValueError('minas: argumentos invalidos')
     
-    dimensao_campo = (ultima_linha-1)*(ord(ultima_coluna)-ord('A')+1)
+    dimensao_campo = (ultima_linha)*(ord(ultima_coluna)-ord('A')+1)
     if dimensao_campo < (9 + num_minas):
         raise ValueError('minas: argumentos invalidos')
         
@@ -530,7 +542,17 @@ def minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial
     campo = cria_campo(ultima_coluna, ultima_linha)
     mostra_campo()
     gerador = cria_gerador(dimensao_gerador, seed_inicial)
-    coordenada_inicial = turno_jogador(campo, primeiro_turno=True)
+    # Pede a coordenada inicial
+    while True:
+        coordenada_inicial = input('Escolha uma coordenada:')
+        try:
+            if type(coordenada_inicial) == str and len(coordenada_inicial.strip()) == 3\
+            and 1 <= int(coordenada_inicial[1:3]) <= obtem_ultima_linha(campo)\
+            and 'A' <= str(coordenada_inicial[0]) <= obtem_ultima_coluna(campo):
+                coordenada_inicial = str_para_coordenada(coordenada_inicial)
+                break
+        except:
+            pass
     campo = coloca_minas(campo, coordenada_inicial, gerador, num_minas)
     limpa_campo(campo, coordenada_inicial)
 
