@@ -593,5 +593,3 @@ def minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial
             mostra_campo()
             print('VITORIA!!!')
             return True
-
-minas('Z', 10, 10, 32, 32)
