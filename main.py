@@ -37,7 +37,8 @@ def define_estado(gerador, seed):
         return seed
 
 def atualiza_estado(gerador):
-    '''Altera destrutivamente o estado do gerador em função do algoritmo descrito
+    '''Altera destrutivamente o estado do gerador em função do algoritmo
+    descrito
     atualiza_estado : gerador -> int
     '''
     if eh_gerador(gerador):
@@ -55,7 +56,8 @@ def eh_gerador(arg):
     '''
     return type(arg) == list and len(arg) == 2 and type(arg[0]) == int and \
         type(arg[1]) == int and (arg[0] == 32 or arg[0] == 64) and arg[1] > 0 and\
-            ((arg[0]==32 and arg[1] <= 0xFFFFFFFF) or (arg[0]==64 and arg[1] <= 0xFFFFFFFFFFFFFFFF))
+            ((arg[0]==32 and arg[1] <= 0xFFFFFFFF) or\
+                (arg[0]==64 and arg[1] <= 0xFFFFFFFFFFFFFFFF))
 
 # -Teste
 def geradores_iguais(gerador1, gerador2):
@@ -97,8 +99,8 @@ def cria_coordenada(coluna, linha):
     '''Cria uma nova instância de uma coordenada
     cria_coordenada : str x int -> coordenada
     '''
-    if type(coluna) != str or type(linha) != int or len(coluna)!=1 or not(1<=linha<=99) or \
-        not('A' <= coluna <= 'Z'):
+    if type(coluna) != str or type(linha) != int or len(coluna)!=1\
+        or not(1<=linha<=99) or not('A' <= coluna <= 'Z'):
         raise ValueError('cria_coordenada: argumentos invalidos')
 
     return (coluna, linha)
@@ -132,8 +134,8 @@ def coordenadas_iguais(coord1, coord2):
     '''Verifica se duas coordenadas são iguais
 	coordenadas_iguais : coordenada x coordenada -> bool
 	'''
-    return eh_coordenada(coord1) and eh_coordenada(coord2) and coord1[0]==coord2[0] and \
-        coord1[1] == coord2[1]
+    return eh_coordenada(coord1) and eh_coordenada(coord2)\
+        and coord1[0]==coord2[0] and coord1[1] == coord2[1]
 
 # -Transformador
 def coordenada_para_str(coordenada):
@@ -153,36 +155,43 @@ def obtem_coordenadas_vizinhas(coordenada):
     '''Devolve todas as coordenadas vizinhas, segundo a regra descrita
 	obtem_coordenadas_vizinhas : coordenada -> tuplo
 	'''
-    def pode_ser_coordenada(col, lin):
-        return type(col) == str and \
-            type(lin) == int and len(col)== 1 and (1<=lin<=99) and \
-                ('A' <= col <= 'Z')
     coordenadas_vizinhas = []
     # Coordenadas em cima
     for coluna_offset in range(-1, 2):
         linha = obtem_linha(coordenada)-1
         coluna = chr(ord(obtem_coluna(coordenada))+coluna_offset)
-        if pode_ser_coordenada(coluna, linha):
+        try:
             coordenadas_vizinhas.append(cria_coordenada(coluna, linha))
+        except:
+            pass
     # Coordenada à direita
-    if pode_ser_coordenada(chr(ord(obtem_coluna(coordenada))+1), obtem_linha(coordenada)):
-        coordenadas_vizinhas.append(cria_coordenada(chr(ord(obtem_coluna(coordenada))+1), obtem_linha(coordenada)))
+    try:
+        coordenadas_vizinhas.append(\
+        cria_coordenada(chr(ord(obtem_coluna(coordenada))+1), obtem_linha(coordenada)))
+    except:
+        pass
     
     # Coordenadas em baixo
     for coluna_offset in range(1, -2, -1):
         linha = obtem_linha(coordenada)+1
         coluna = chr(ord(obtem_coluna(coordenada))+coluna_offset)
-        if pode_ser_coordenada(coluna, linha):
+        try:
             coordenadas_vizinhas.append(cria_coordenada(coluna, linha))
+        except:
+            pass
     
     # Coordenada à esquerda
-    if pode_ser_coordenada(chr(ord(obtem_coluna(coordenada))-1), obtem_linha(coordenada)):
-        coordenadas_vizinhas.append(cria_coordenada(chr(ord(obtem_coluna(coordenada))-1), obtem_linha(coordenada)))
+    try:
+        coordenadas_vizinhas.append(\
+        cria_coordenada(chr(ord(obtem_coluna(coordenada))-1), obtem_linha(coordenada)))
+    except:
+        pass
 
     return tuple(coordenadas_vizinhas)
 
 def obtem_coordenada_aleatoria(coord, gerador):
-    '''Devolve uma coordenada aleatória cuja coluna e linha máxima são definidas pelo parâmetro coordenada
+    '''Devolve uma coordenada aleatória cuja coluna e linha máxima são definidas pelo
+    parâmetro coordenada
 	obtem_coordenada_aleatoria : coordenada x gerador -> coordenada
 	'''
     coluna = gera_carater_aleatorio(gerador, obtem_coluna(coord))
@@ -277,7 +286,8 @@ def parcelas_iguais(parcela1, parcela2):
     '''Verifica se duas parcelas são iguais
 	parcelas_iguais : parcela x parcela -> bool
 	'''
-    return eh_parcela(parcela1) and eh_parcela(parcela2) and parcela1['estado'] == parcela2['estado'] \
+    return eh_parcela(parcela1) and eh_parcela(parcela2)\
+        and parcela1['estado'] == parcela2['estado'] \
         and parcela1['mina'] == parcela2['mina']
 
 # -Transformadores
@@ -285,11 +295,11 @@ def parcela_para_str(parcela):
     '''Devolve a representação externa de uma parcela
 	parcela_para_str : parcela -> str
 	'''
-    estados = {'tapada': '#', 'marcada': '@', 'limpa_sem_mina': '?', 'limpa_com_mina': 'X'}
+    estados = {'tapada': '#', 'marcada': '@'}
     if parcela['estado'] == 'limpa' and parcela['mina']:
-        return estados['limpa_com_mina']
+        return 'X'
     if parcela['estado'] == 'limpa' and not parcela['mina']:
-        return estados['limpa_sem_mina']
+        return '?'
     return estados[parcela['estado']]
 
 # -> Funcoes de alto nivel
@@ -386,7 +396,8 @@ def obtem_numero_minas_vizinhas(campo, coord):
         for coordenada in coordenadas_vizinhas:
             index_linha = obtem_linha(coordenada)-1
             index_coluna = ord(obtem_coluna(coordenada))-ord('A')
-            if eh_coordenada_do_campo(campo, coordenada) and eh_parcela_minada(campo[index_linha][index_coluna]):
+            if eh_coordenada_do_campo(campo, coordenada)\
+            and eh_parcela_minada(campo[index_linha][index_coluna]):
                 num_coordenadas_vizinhas_minadas += 1
         return num_coordenadas_vizinhas_minadas
 
@@ -403,7 +414,7 @@ def eh_coordenada_do_campo(campo, coord):
     '''Verifica se o a coordenada pertence ao campo
 	eh_coordenada_do_campo : campo x coordenada -> bool
 	'''
-    return eh_campo(campo) and eh_coordenada(coord)\
+    return eh_coordenada(coord)\
         and obtem_coluna(coord) <= obtem_ultima_coluna(campo)\
         and obtem_linha(coord) <= obtem_ultima_linha(campo)
 
@@ -421,15 +432,19 @@ def campo_para_str(campo):
 	'''
     if eh_campo(campo):
         lista_letras = [chr(letra_lista) for letra_lista in range(ord('A'), ord(obtem_ultima_coluna(campo))+1)]
+        # As primeiras 2 linhas correspondem à representação das colunas (letras) e ao limite
+        # superior do campo
         linhas_do_campo = [f"   {''.join(lista_letras)}", '  +'+'-'*len(lista_letras)+'+']
         for i, linha in enumerate(campo):
             simbolos_linha = [parcela_para_str(parcela) for parcela in linha]
             for j in range(len(linha)):
+                # Handle do caso de existirem minas à volta da parcela
                 if simbolos_linha[j] == '?':
                     coluna_letra = chr(ord('A')+j)
                     numero_minas_vizinhas = obtem_numero_minas_vizinhas(campo, cria_coordenada(coluna_letra, i+1))
                     simbolos_linha[j] = ' ' if numero_minas_vizinhas == 0\
                         else str(numero_minas_vizinhas)
+            # Os primeiros 2 caracteres de cada linha vão corresponder ao número correspondente
             linhas_do_campo.append(f'{str(i+1).zfill(2)}|{"".join(simbolos_linha)}|')
         linhas_do_campo.append('  +'+'-'*len(lista_letras)+'+')
         return '\n'.join(linhas_do_campo)
@@ -441,8 +456,10 @@ def coloca_minas(campo, coordenada, gerador, num_minas):
 	'''
     for i in range(num_minas):
         while True:
-            coordenada_escolhida = obtem_coordenada_aleatoria(cria_coordenada(obtem_ultima_coluna(campo), obtem_ultima_linha(campo)), gerador)   
+            coordenada_escolhida = obtem_coordenada_aleatoria(\
+            cria_coordenada(obtem_ultima_coluna(campo), obtem_ultima_linha(campo)), gerador)   
             coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada)
+
             if not eh_parcela_minada(obtem_parcela(campo, coordenada_escolhida))\
                 and not coordenadas_iguais(coordenada, coordenada_escolhida)\
                 and coordenada_escolhida not in coordenadas_vizinhas:
@@ -464,6 +481,7 @@ def limpa_campo(campo, coordenada_inicial):
                 for coordenada_vizinha in coordenadas_vizinhas:
                     limpa_campo_aux(campo, coordenada_vizinha)
 
+    # Na "primeira iteração" da função, não se pode verificar se a parcela está marcada
     parcela = obtem_parcela(campo, coordenada_inicial)
     if not eh_parcela_limpa(parcela):
         limpa_parcela(obtem_parcela(campo, coordenada_inicial))
@@ -480,8 +498,15 @@ def jogo_ganho(campo):
     '''Recebe um campo e verifica se o jogo está ganho
 	jogo_ganho : campo -> bool
 	'''
-    coordenadas_marcadas_sem_mina = list(filter(lambda x: not eh_parcela_minada(x), obtem_coordenadas(campo, 'marcadas')))
-    coordenadas_marcadas_ou_tapadas = list(obtem_coordenadas(campo, 'tapadas')) + coordenadas_marcadas_sem_mina
+    # O jogo está ganho se: o número de parcelas sem mina for igual ao número de
+    # parcelas limpas <=> o número de parcelas tapadas ou marcadas com mina for 
+    # igual ao número de parcelas com mina
+
+    coordenadas_marcadas_com_mina =\
+    list(filter(lambda x: not eh_parcela_minada(x), obtem_coordenadas(campo, 'marcadas')))
+    coordenadas_marcadas_ou_tapadas=\
+    list(obtem_coordenadas(campo, 'tapadas')) + coordenadas_marcadas_com_mina
+
     coordenadas_marcadas_ou_tapadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
     coordenadas_minadas = list(obtem_coordenadas(campo, 'minadas'))
     coordenadas_minadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
@@ -535,12 +560,13 @@ def minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial
     
     verificacao_minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial)
     
-    def mostra_campo():
-        print(f'   [Bandeiras {len(obtem_coordenadas(campo, "marcadas"))}/{num_minas}]')
+    def mostra_campo(primeiro=False):
+        n_bandeiras = 0 if primeiro else len(obtem_coordenadas(campo, "marcadas"))
+        print(f'   [Bandeiras {n_bandeiras}/{num_minas}]')
         print(campo_para_str(campo))
 
     campo = cria_campo(ultima_coluna, ultima_linha)
-    mostra_campo()
+    mostra_campo(primeiro=True)
     gerador = cria_gerador(dimensao_gerador, seed_inicial)
     # Pede a coordenada inicial
     while True:
@@ -567,3 +593,5 @@ def minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial
             mostra_campo()
             print('VITORIA!!!')
             return True
+
+minas('Z', 10, 10, 32, 32)
