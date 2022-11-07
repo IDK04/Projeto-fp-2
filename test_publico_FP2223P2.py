@@ -200,6 +200,10 @@ class TestPublicFunAux:
     def test_6(self):
         assert not minas_mooshak('Z', 5, 10, 32, 15, 'M3\nM03\nM\nC03\nL\nD04\n')
 
+'''class TestPublicEspecialCase:
+    def test_7(self):
+        assert minas_mooshak('Z',10,10,32,12,'A01\nL\nZ06\nL\nS10\nL\nQ08\nL\nP07\nL\nO06\nL\nS01\n')'''
+
 ### AUXILIAR CODE NECESSARY TO REPLACE STANDARD INPUT 
 class ReplaceStdIn:
     def __init__(self, input_handle):

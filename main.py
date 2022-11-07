@@ -253,8 +253,7 @@ def eh_parcela(arg):
 	eh_parcela : universal -> bool
 	'''
     return type(arg) == dict and len(arg) == 2 and 'estado' in arg \
-        and 'mina' in arg and ('limpa' == arg['estado'] \
-            or 'marcada' == arg['estado'] or 'tapada' == arg['estado']) \
+        and 'mina' in arg and (arg['estado'] in ['limpa','tapada','marcada']) \
                 and type(arg['mina']) == bool
 
 def eh_parcela_tapada(parcela):
@@ -387,7 +386,7 @@ def obtem_coordenadas(campo, estado):
         return tuple(filtrado)
 
 def obtem_numero_minas_vizinhas(campo, coord):
-    '''Desolve o número de minas em coordenadas vizinhas à fornecida
+    '''Devolve o número de minas em coordenadas vizinhas à fornecida
 	obtem_numero_minas_vizinhas : campo x coordenada -> int
 	'''
     if eh_campo(campo) and eh_coordenada(coord) and eh_coordenada_do_campo(campo, coord):
@@ -407,8 +406,7 @@ def eh_campo(arg):
 	eh_campo : universal -> bool
 	'''
     return type(arg) == list and 1<=len(arg)<=99 \
-        and all((type(col)==list and (1<=len(col)<=26)) for col in arg)\
-        and all(all(eh_parcela(el) for el in col) for col in arg)
+        and all((type(col)==list and (1<=len(col)<=26)) for col in arg)
 
 def eh_coordenada_do_campo(campo, coord):
     '''Verifica se o a coordenada pertence ao campo
@@ -462,35 +460,24 @@ def coloca_minas(campo, coordenada, gerador, num_minas):
 
             if not eh_parcela_minada(obtem_parcela(campo, coordenada_escolhida))\
                 and not coordenadas_iguais(coordenada, coordenada_escolhida)\
-                and coordenada_escolhida not in coordenadas_vizinhas:
+                and all(not coordenadas_iguais(coordenada_escolhida, coord_viz) for coord_viz in coordenadas_vizinhas):
                 esconde_mina(obtem_parcela(campo, coordenada_escolhida))
                 break
     return campo
 
-def limpa_campo(campo, coordenada_inicial):
+def limpa_campo(campo, coordenada, primeira_iteracao=True):
     '''Limpa a coordenada fornecida até encontrar minas vizinhas
 	limpa_campo : campo x coordenada -> campo
 	'''
-    def limpa_campo_aux(campo,coordenada):
-        parcela = obtem_parcela(campo, coordenada)
-        if not eh_parcela_limpa(parcela) and not eh_parcela_marcada(parcela):
-            limpa_parcela(obtem_parcela(campo, coordenada))
-            minas_vizinhas = obtem_numero_minas_vizinhas(campo, coordenada)
-            coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada)
-            if minas_vizinhas == 0 and not eh_parcela_minada(parcela):
-                for coordenada_vizinha in coordenadas_vizinhas:
-                    limpa_campo_aux(campo, coordenada_vizinha)
-
-    # Na "primeira iteração" da função, não se pode verificar se a parcela está marcada
-    parcela = obtem_parcela(campo, coordenada_inicial)
-    if not eh_parcela_limpa(parcela):
-        limpa_parcela(obtem_parcela(campo, coordenada_inicial))
-        minas_vizinhas = obtem_numero_minas_vizinhas(campo, coordenada_inicial)
-        coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada_inicial)
+    parcela = obtem_parcela(campo, coordenada)
+    if (eh_parcela_tapada(parcela))\
+        or (not eh_parcela_limpa(parcela) and primeira_iteracao): # Só se limpa uma parcela marcada na primeira iteraçao
+        limpa_parcela(obtem_parcela(campo, coordenada))
+        minas_vizinhas = obtem_numero_minas_vizinhas(campo, coordenada)
+        coordenadas_vizinhas = obtem_coordenadas_vizinhas(coordenada)
         if minas_vizinhas == 0 and not eh_parcela_minada(parcela):
             for coordenada_vizinha in coordenadas_vizinhas:
-                limpa_campo_aux(campo, coordenada_vizinha)
-
+                limpa_campo(campo, coordenada_vizinha,primeira_iteracao=False)
     return campo
 
 # Funcoes adicionais
@@ -499,15 +486,13 @@ def jogo_ganho(campo):
 	jogo_ganho : campo -> bool
 	'''
     # O jogo está ganho se: o número de parcelas sem mina for igual ao número de
-    # parcelas limpas <=> o número de parcelas tapadas ou marcadas com mina for 
-    # igual ao número de parcelas com mina
+    # parcelas limpas <=> o número de parcelas tapadas ou marcadas é igual ao 
+    # número de parcelas com mina
 
-    coordenadas_marcadas_com_mina =\
-    list(filter(lambda x: not eh_parcela_minada(x), obtem_coordenadas(campo, 'marcadas')))
     coordenadas_marcadas_ou_tapadas=\
-    list(obtem_coordenadas(campo, 'tapadas')) + coordenadas_marcadas_com_mina
-
+    list(obtem_coordenadas(campo, 'tapadas')) + list(obtem_coordenadas(campo, 'marcadas'))
     coordenadas_marcadas_ou_tapadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
+
     coordenadas_minadas = list(obtem_coordenadas(campo, 'minadas'))
     coordenadas_minadas.sort(key=lambda coord: (obtem_coluna(coord), obtem_linha(coord)))
     return coordenadas_marcadas_ou_tapadas == coordenadas_minadas
@@ -521,12 +506,11 @@ def turno_jogador(campo):
         if type(acao)==str and len(acao)==1 and (acao == 'M' or acao == 'L'):
             break
     while True:
-        coordenada = input('Escolha uma coordenada:')
+        coordenada_input = input('Escolha uma coordenada:')
         try:
-            if type(coordenada) == str and len(coordenada.strip()) == 3\
-            and 1 <= int(coordenada[1:3]) <= obtem_ultima_linha(campo)\
-            and 'A' <= str(coordenada[0]) <= obtem_ultima_coluna(campo):
-                coordenada = str_para_coordenada(coordenada)
+            coordenada = str_para_coordenada(coordenada_input)
+            if eh_coordenada_do_campo(campo,coordenada) and len(coordenada_input)==3:#tem que ser 3 
+                # para respeitar a representação externa de uma coordenada
                 break
         except:
             pass
@@ -560,22 +544,20 @@ def minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial
     
     verificacao_minas(ultima_coluna, ultima_linha, num_minas, dimensao_gerador, seed_inicial)
     
-    def mostra_campo(primeiro=False):
-        n_bandeiras = 0 if primeiro else len(obtem_coordenadas(campo, "marcadas"))
-        print(f'   [Bandeiras {n_bandeiras}/{num_minas}]')
+    def mostra_campo():
+        print(f'   [Bandeiras {len(obtem_coordenadas(campo, "marcadas"))}/{num_minas}]')
         print(campo_para_str(campo))
 
     campo = cria_campo(ultima_coluna, ultima_linha)
-    mostra_campo(primeiro=True)
+    mostra_campo()
     gerador = cria_gerador(dimensao_gerador, seed_inicial)
     # Pede a coordenada inicial
     while True:
-        coordenada_inicial = input('Escolha uma coordenada:')
+        coordenada_inicial_input = input('Escolha uma coordenada:')
         try:
-            if type(coordenada_inicial) == str and len(coordenada_inicial.strip()) == 3\
-            and 1 <= int(coordenada_inicial[1:3]) <= obtem_ultima_linha(campo)\
-            and 'A' <= str(coordenada_inicial[0]) <= obtem_ultima_coluna(campo):
-                coordenada_inicial = str_para_coordenada(coordenada_inicial)
+            coordenada_inicial = str_para_coordenada(coordenada_inicial_input)
+            if eh_coordenada_do_campo(campo, coordenada_inicial) and len(coordenada_inicial_input)==3: #tem que ser 3 
+                # para respeitar a representação externa de uma coordenada
                 break
         except:
             pass
